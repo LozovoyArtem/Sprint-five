@@ -1,139 +1,255 @@
-package ftracker
+package main
 
 import (
 	"fmt"
 	"math"
+	"time"
 )
 
-// Основные константы, необходимые для расчетов.
+// Общие константы для вычислений.
 const (
-	lenStep   = 0.65  // средняя длина шага.
-	mInKm     = 1000  // количество метров в километре.
-	minInH    = 60    // количество минут в часе.
-	kmhInMsec = 0.278 // коэффициент для преобразования км/ч в м/с.
-	cmInM     = 100   // количество сантиметров в метре.
+	MInKm      = 1000 // количество метров в одном километре
+	MinInHours = 60   // количество минут в одном часе
+	LenStep    = 0.65 // длина одного шага
+	CmInM      = 100  // количество сантиметров в одном метре
 )
 
-// distance возвращает дистанцию(в километрах), которую преодолел пользователь за время тренировки.
-//
-// Параметры:
-//
-// action int — количество совершенных действий (число шагов при ходьбе и беге, либо гребков при плавании).
-func distance(action int) float64 {
-	return float64(action) * lenStep / mInKm
+// Training общая структура для всех тренировок
+type Training struct {
+	TrainingType string        // тип тренировки
+	Action       int           // количество повторов(шаги, гребки при плавании)
+	LenStep      float64       // длина одного шага или гребка в м
+	Duration     time.Duration // продолжительность тренировки
+	Weight       float64       // вес пользователя в кг
 }
 
-// meanSpeed возвращает значение средней скорости движения во время тренировки.
-//
-// Параметры:
-//
-// action int — количество совершенных действий(число шагов при ходьбе и беге, либо гребков при плавании).
-// duration float64 — длительность тренировки в часах.
-func meanSpeed(action int, duration float64) float64 {
-	if duration == 0 {
+// distance возвращает дистанцию, которую преодолел пользователь.
+// Формула расчета:
+// количество_повторов * длина_шага / м_в_км
+func (t Training) distance() float64 {
+	// вставьте ваш код ниже
+	return float64(t.Action) * t.LenStep / MInKm
+}
+
+// meanSpeed возвращает среднюю скорость бега или ходьбы.
+func (t Training) meanSpeed() float64 {
+	// вставьте ваш код ниже
+	if t.Duration.Hours() == 0 {
 		return 0
 	}
-	distance := distance(action)
-	return distance / duration
+	return float64(t.distance()) / float64(t.Duration.Hours())
 }
 
-// ShowTrainingInfo возвращает строку с информацией о тренировке.
-//
-// Параметры:
-//
-// action int — количество совершенных действий(число шагов при ходьбе и беге, либо гребков при плавании).
-// trainingType string — вид тренировки(Бег, Ходьба, Плавание).
-// duration float64 — длительность тренировки в часах.
-func ShowTrainingInfo(action int, trainingType string, duration, weight, height float64, lengthPool, countPool int) string {
-	// ваш код здесь
-	switch {
-	case trainingType == "Бег":
-		distance := distance(action)                               // вызовите здесь необходимую функцию
-		speed := meanSpeed(action, duration)                       // вызовите здесь необходимую функцию
-		calories := RunningSpentCalories(action, weight, duration) // вызовите здесь необходимую функцию
-		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", trainingType, duration, distance, speed, calories)
-	case trainingType == "Ходьба":
-		distance := distance(action)                                       // вызовите здесь необходимую функцию
-		speed := meanSpeed(action, duration)                               // вызовите здесь необходимую функцию
-		calories := WalkingSpentCalories(action, duration, weight, height) // вызовите здесь необходимую функцию
-		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", trainingType, duration, distance, speed, calories)
-	case trainingType == "Плавание":
-		distance := distance(action)                                               // вызовите здесь необходимую функцию
-		speed := swimmingMeanSpeed(lengthPool, countPool, duration)                // вызовите здесь необходимую функцию
-		calories := SwimmingSpentCalories(lengthPool, countPool, duration, weight) // вызовите здесь необходимую функцию
-		return fmt.Sprintf("Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n", trainingType, duration, distance, speed, calories)
-	default:
-		return "неизвестный тип тренировки"
+// Calories возвращает количество потраченных килокалорий на тренировке.
+// Пока возвращаем 0, так как этот метод будет переопределяться для каждого типа тренировки.
+func (t Training) Calories() float64 {
+	// вставьте ваш код ниже
+	return 0
+}
+
+// InfoMessage содержит информацию о проведенной тренировке.
+type InfoMessage struct {
+	// добавьте необходимые поля в структуру
+	TrainingType string        // тип тренировки
+	Duration     time.Duration // длительность тренировки
+	Distance     float64       // расстояние, которое преодолел пользователь
+	Speed        float64       // средняя скорость, с которой двигался пользователь
+	Calories     float64       // количество потраченных килокалорий на тренировке
+}
+
+// TrainingInfo возвращает труктуру InfoMessage, в которой хранится вся информация о проведенной тренировке.
+func (t Training) TrainingInfo() InfoMessage {
+	// вставьте ваш код ниже
+	return InfoMessage{
+		TrainingType: t.TrainingType,
+		Duration:     t.Duration,
+		Distance:     t.distance(),
+		Speed:        t.meanSpeed(),
+		Calories:     t.Calories(),
 	}
 }
 
-// Константы для расчета калорий, расходуемых при беге.
-const (
-	runningCaloriesMeanSpeedMultiplier = 18   // множитель средней скорости.
-	runningCaloriesMeanSpeedShift      = 1.79 // среднее количество сжигаемых калорий при беге.
-)
-
-// RunningSpentCalories возвращает количество потраченных колорий при беге.
-//
-// Параметры:
-//
-// action int — количество совершенных действий(число шагов при ходьбе и беге, либо гребков при плавании).
-// weight float64 — вес пользователя.
-// duration float64 — длительность тренировки в часах.
-func RunningSpentCalories(action int, weight, duration float64) float64 {
-	// ваш код здесь
-	return float64((runningCaloriesMeanSpeedMultiplier * meanSpeed(action, duration) * runningCaloriesMeanSpeedShift) * weight / mInKm * duration * minInH)
+// String возвращает строку с информацией о проведенной тренировке.
+func (i InfoMessage) String() string {
+	return fmt.Sprintf("Тип тренировки: %s\nДлительность: %v мин\nДистанция: %.2f км.\nСр. скорость: %.2f км/ч\nПотрачено ккал: %.2f\n",
+		i.TrainingType,
+		i.Duration.Minutes(),
+		i.Distance,
+		i.Speed,
+		i.Calories,
+	)
 }
 
-// Константы для расчета калорий, расходуемых при ходьбе.
-const (
-	walkingCaloriesWeightMultiplier = 0.035 // множитель массы тела.
-	walkingSpeedHeightMultiplier    = 0.029 // множитель роста.
-)
-
-// WalkingSpentCalories
-// возвращает количество потраченных калорий при ходьбе.
-//
-// # Параметры
-//
-// action int — количество совершенных действий(число шагов при ходьбе и беге, либо гребков при плавании).
-// duration float64 — длительность тренировки в часах.
-// weight float64 — вес пользователя.
-// height float64 — рост пользователя.
-func WalkingSpentCalories(action int, duration, weight, height float64) float64 {
-	// ваш код здесь
-	return (walkingCaloriesWeightMultiplier*weight + ((math.Pow(meanSpeed(action, duration)*kmhInMsec, 2))/(height/cmInM))*walkingSpeedHeightMultiplier*weight) * duration * minInH
+// CaloriesCalculator интерфейс для структур: Running, Walking и Swimming.
+type CaloriesCalculator interface {
+	// добавьте необходимые методы в интерфейс
+	Calories() float64
+	TrainingInfo() InfoMessage
 }
 
-// Константы для расчета калорий, расходуемых при плавании.
+// Константы для расчета потраченных килокалорий при беге.
 const (
-	swimmingCaloriesMeanSpeedShift   = 1.1 // среднее количество сжигаемых колорий при плавании относительно скорости.
-	swimmingCaloriesWeightMultiplier = 2   // множитель веса при плавании.
+	CaloriesMeanSpeedMultiplier = 18   // множитель средней скорости бега
+	CaloriesMeanSpeedShift      = 1.79 // коэффициент изменения средней скорости
 )
 
-// swimmingMeanSpeed возвращает среднюю скорость при плавании.
-//
-// Параметры:
-//
-// lengthPool int — длина бассейна в метрах.
-// countPool int — сколько раз пользователь переплыл бассейн.
-// duration float64 — длительность тренировки в часах.
-func swimmingMeanSpeed(lengthPool, countPool int, duration float64) float64 {
-	if duration == 0 {
+// Running структура, описывающая тренировку Бег.
+type Running struct {
+	// добавьте необходимые поля в структуру
+	Training
+}
+
+// Calories возввращает количество потраченных килокалория при беге.
+// Формула расчета:
+// ((18 * средняя_скорость_в_км/ч + 1.79) * вес_спортсмена_в_кг / м_в_км * время_тренировки_в_часах * мин_в_часе)
+// Это переопределенный метод Calories() из Training.
+func (r Running) Calories() float64 {
+	// вставьте ваш код ниже
+	return float64((CaloriesMeanSpeedMultiplier*r.meanSpeed() + CaloriesMeanSpeedShift) * r.Weight / MInKm * r.Duration.Hours() * MinInHours)
+}
+
+// TrainingInfo возвращает структуру InfoMessage с информацией о проведенной тренировке.
+// Это переопределенный метод TrainingInfo() из Training.
+func (r Running) TrainingInfo() InfoMessage {
+	// вставьте ваш код ниже
+	return r.Training.TrainingInfo()
+}
+
+// Константы для расчета потраченных килокалорий при ходьбе.
+const (
+	CaloriesWeightMultiplier      = 0.035 // коэффициент для веса
+	CaloriesSpeedHeightMultiplier = 0.029 // коэффициент для роста
+	KmHInMsec                     = 0.278 // коэффициент для перевода км/ч в м/с
+)
+
+// Walking структура описывающая тренировку Ходьба
+type Walking struct {
+	// добавьте необходимые поля в структуру
+	Training
+	Height float64 // рост пользователя
+}
+
+// Calories возвращает количество потраченных килокалорий при ходьбе.
+// Формула расчета:
+// ((0.035 * вес_спортсмена_в_кг + (средняя_скорость_в_метрах_в_секунду**2 / рост_в_метрах)
+// * 0.029 * вес_спортсмена_в_кг) * время_тренировки_в_часах * мин_в_ч)
+// Это переопределенный метод Calories() из Training.
+func (w Walking) Calories() float64 {
+	// вставьте ваш код ниже
+	if w.Height == 0 {
 		return 0
 	}
-	return float64(lengthPool) * float64(countPool) / mInKm / duration
+	return float64(((CaloriesWeightMultiplier*w.Weight + (math.Pow((w.meanSpeed()*KmHInMsec), 2)/w.Height)*CaloriesSpeedHeightMultiplier*w.Weight) * w.Duration.Hours() * MinInHours))
 }
 
-// SwimmingSpentCalories возвращает количество потраченных калорий при плавании.
-//
-// Параметры:
-//
-// lengthPool int — длина бассейна в метрах.
-// countPool int — сколько раз пользователь переплыл бассейн.
-// duration float64 — длительность тренировки в часах.
-// weight float64 — вес пользователя.
-func SwimmingSpentCalories(lengthPool, countPool int, duration, weight float64) float64 {
-	// ваш код здесь
-	return float64((swimmingMeanSpeed(lengthPool, countPool, duration) + swimmingCaloriesMeanSpeedShift) * swimmingCaloriesWeightMultiplier * weight * duration)
+// TrainingInfo возвращает структуру InfoMessage с информацией о проведенной тренировке.
+// Это переопределенный метод TrainingInfo() из Training.
+func (w Walking) TrainingInfo() InfoMessage {
+	// вставьте ваш код ниже
+	return w.Training.TrainingInfo()
+}
+
+// Константы для расчета потраченных килокалорий при плавании.
+const (
+	SwimmingLenStep                  = 1.38 // длина одного гребка
+	SwimmingCaloriesMeanSpeedShift   = 1.1  // коэффициент изменения средней скорости
+	SwimmingCaloriesWeightMultiplier = 2    // множитель веса пользователя
+)
+
+// Swimming структура, описывающая тренировку Плавание
+type Swimming struct {
+	// добавьте необходимые поля в структуру
+	Training
+	LengthPool int // длина бассейна
+	CountPool  int // количество пересечений бассейна
+}
+
+// meanSpeed возвращает среднюю скорость при плавании.
+// Формула расчета:
+// длина_бассейна * количество_пересечений / м_в_км / продолжительность_тренировки
+// Это переопределенный метод Calories() из Training.
+func (s Swimming) meanSpeed() float64 {
+	// вставьте ваш код ниже
+	if s.Duration.Hours() == 0 {
+		return 0
+	}
+	return float64(s.LengthPool*s.CountPool) / float64(MInKm) / s.Duration.Hours()
+}
+
+// Calories возвращает количество калорий, потраченных при плавании.
+// Формула расчета:
+// (средняя_скорость_в_км/ч + SwimmingCaloriesMeanSpeedShift) * SwimmingCaloriesWeightMultiplier * вес_спортсмена_в_кг * время_тренировки_в_часах
+// Это переопределенный метод Calories() из Training.
+func (s Swimming) Calories() float64 {
+	// вставьте ваш код ниже
+	return float64((s.meanSpeed() + SwimmingCaloriesMeanSpeedShift) * SwimmingCaloriesWeightMultiplier * s.Weight * s.Duration.Hours())
+}
+
+// TrainingInfo returns info about swimming training.
+// Это переопределенный метод TrainingInfo() из Training.
+func (s Swimming) TrainingInfo() InfoMessage {
+	// вставьте ваш код ниже
+	return InfoMessage{
+		TrainingType: s.TrainingType,
+		Duration:     s.Duration,
+		Distance:     s.distance(),
+		Speed:        s.meanSpeed(),
+		Calories:     s.Calories(),
+	}
+}
+
+// ReadData возвращает информацию о проведенной тренировке.
+func ReadData(training CaloriesCalculator) string {
+	// получите количество затраченных калорий
+	calories := training.Calories()
+
+	// получите информацию о тренировке
+	info := training.TrainingInfo()
+	// добавьте полученные калории в структуру с информацией о тренировке
+	info.Calories = calories
+
+	return fmt.Sprint(info)
+}
+
+func main() {
+
+	swimming := Swimming{
+		Training: Training{
+			TrainingType: "Плавание",
+			Action:       2000,
+			LenStep:      SwimmingLenStep,
+			Duration:     90 * time.Minute,
+			Weight:       85,
+		},
+		LengthPool: 50,
+		CountPool:  5,
+	}
+
+	fmt.Println(ReadData(swimming))
+
+	walking := Walking{
+		Training: Training{
+			TrainingType: "Ходьба",
+			Action:       20000,
+			LenStep:      LenStep,
+			Duration:     3*time.Hour + 45*time.Minute,
+			Weight:       85,
+		},
+		Height: 185,
+	}
+
+	fmt.Println(ReadData(walking))
+
+	running := Running{
+		Training: Training{
+			TrainingType: "Бег",
+			Action:       5000,
+			LenStep:      LenStep,
+			Duration:     30 * time.Minute,
+			Weight:       85,
+		},
+	}
+
+	fmt.Println(ReadData(running))
+
 }
